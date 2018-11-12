@@ -1,0 +1,8 @@
+.progress-bar {
+    -fx-background-color: aqua;
+    -fx-background-radius: 5;
+    -fx-padding: 0.3em; /* 5 */
+}
+.bar {
+-fx-background-color: red;
+}
