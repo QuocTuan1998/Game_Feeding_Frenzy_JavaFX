@@ -1,4 +1,4 @@
-package sample;
+package sample.model;
 
 import javafx.animation.Interpolator;
 import javafx.animation.RotateTransition;
@@ -12,17 +12,24 @@ public class AnimationObject {
     public void rotate(Node node){
         RotateTransition obj = new RotateTransition(Duration.millis(200), node);
         obj.setAxis(Rotate.Y_AXIS);
-        obj.setFromAngle(-3);
-        obj.setToAngle(3);
+        obj.setFromAngle(-5);
+        obj.setToAngle(5);
         obj.setAutoReverse(true);
         obj.setCycleCount(RotateTransition.INDEFINITE);
         obj.setInterpolator(Interpolator.LINEAR);
         obj.play();
     }
 
-    public void move(Node node, int secound) {
-        TranslateTransition translateTransition = new TranslateTransition(Duration.seconds(secound), node);
+    public void moveLeft(Node node, int duration) {
+        TranslateTransition translateTransition = new TranslateTransition(Duration.seconds(duration), node);
         translateTransition.setByX(2200);
+        translateTransition.setAutoReverse(true);
+        translateTransition.play();
+    }
+
+    public void moveRight(Node node, int duration) {
+        TranslateTransition translateTransition = new TranslateTransition(Duration.seconds(duration), node);
+        translateTransition.setToX(-100);
         translateTransition.setAutoReverse(true);
         translateTransition.play();
     }

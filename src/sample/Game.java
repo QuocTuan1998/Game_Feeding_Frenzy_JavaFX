@@ -2,9 +2,6 @@ package sample;
 
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
-import javafx.concurrent.Task;
-import javafx.concurrent.WorkerStateEvent;
-import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -13,15 +10,16 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Box;
-import javafx.scene.shape.Sphere;
 import javafx.stage.Stage;
+import sample.model.Bubble;
+import sample.model.GameObject;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 public class Game extends Application {
+    public static final int SMALL_FISH = 0, NORMAL_FISH = 1, BIG_FISH = 2;
     public static final int WIDTH = 900;
     public static final int HEIGHT = 500;
     private double mousePosition = 0;
@@ -33,9 +31,7 @@ public class Game extends Application {
     private double point = 0;
     private int heart = 3;
 
-    private List<GameObject> listSmallFish= new ArrayList<>();
-    private List<GameObject> listNormalFish= new ArrayList<>();
-    private List<GameObject> listBigFish= new ArrayList<>();
+    private List<GameObject> listFish = new ArrayList<>();
 
     private AnimationTimer timer;
 
@@ -56,13 +52,13 @@ public class Game extends Application {
         scene.getStylesheets().add("sample/style.css");
 
         scene.setOnMouseMoved(event -> {
-            if (event.getX() < mousePosition){
+            if (event.getX() * 10 < mousePosition){
                 player.setRotate(true);
-            }else{
+            }else if (event.getX() * 10 > mousePosition){
                 player.setRotate(false);
             }
             player.setPosition(event.getX(), event.getY());
-            mousePosition = event.getX();
+            mousePosition = event.getX() * 10;
         });
 
         primaryStage.setScene(scene);
@@ -86,16 +82,12 @@ public class Game extends Application {
         root.getChildren().add(bar);
 
         player = new GameObject();
-        player.drawFish(root, "Angel0.3ds", "sample/src/AngelT.bmp",600, 600, 100, 100, Color.AQUA);
+        player.drawGamePlay(root, "../object/Angel0.3ds", "sample/src/AngelT.bmp",Color.AQUA);
 
         timer = new AnimationTimer() {
             @Override
             public void handle(long now) {
                 onUpdate();
-//                if (player.isDead()){
-//                    showDialog("you lose!");
-//                    stop();
-//                }
             }
         };
         timer.start();
@@ -160,35 +152,34 @@ public class Game extends Application {
 //                100,
 //                null);
 //        bigFish.objImporter(root);
-        bigFish.move(bigFish.getNode(), random.nextInt(25 - 20) + 20);
+//        bigFish.move(bigFish.getNode(), random.nextInt(25 - 20) + 20);
         bigFish.getNode().setRotate(50);
-        listBigFish.add(bigFish);
+        listFish.add(bigFish);
     }
+
 
     private void addNormalFish() {
         normalFish = new GameObject();
         normalFish.drawFish(root,
-                "Blackbass0.3ds", "sample/src/BlackbT.bmp",
-                -200,
+                "../object/Blackbass0.3ds", "sample/src/BlackbT.bmp",
                 random.nextInt(HEIGHT),
                 150,
                 300,
-                null);
+                null, new Random().nextBoolean(), NORMAL_FISH);
         normalFish.move(normalFish.getNode(), random.nextInt(25 - 20) + 20);
-        listNormalFish.add(normalFish);
+        listFish.add(normalFish);
     }
 
     private void addSmallFish() {
         smallFish = new GameObject();
         smallFish.drawFish(root,
-                "BrownTrout0.3ds", "sample/src/BrownTT.bmp",
-                -200,
+                "../object/BrownTrout0.3ds", "sample/src/BrownTT.bmp",
                 random.nextInt(HEIGHT),
                 100,
                 150,
-                null);
+                null, new Random().nextBoolean(), SMALL_FISH);
         smallFish.move(smallFish.getNode(), random.nextInt(15 - 10) + 10);
-        listSmallFish.add(smallFish);
+        listFish.add(smallFish);
     }
 
 
@@ -198,38 +189,40 @@ public class Game extends Application {
 
     private void handleCollision(){
         // TODO: 11/3/2018 Xử lí va chạm khi gamePlay va chạm với các đối tượng khác
+        checkLevel();
 
-        for (GameObject small : listSmallFish) {
-            if (player.isColliding(player.getNode(), small.getNode())) {
-                small.setAlive(false);
-                point ++;
-                root.getChildren().remove(small.getNode());
+        for (GameObject gameObject : listFish){
+            if (player.isColliding(player.getNode(), gameObject.getNode())){
+                if (gameObject.getType() > 0){
+                    if (point >= 15){
+                        if (point >= 30 && point >= 15){
+                            handleCollisionSuccess(gameObject);
+                        }else if (point < 30 && point >= 15){
+                            handleCollisionSuccess(gameObject);
+                        }else hanldeDied();
+                    }else {
+                        hanldeDied();
+                    }
+                }else {
+                    handleCollisionSuccess(gameObject);
+                }
             }
         }
+//
+//        if (point < 0) {
+//            point = 0;
+//        }
+//        if (heart < 0) {
+//            heart = 0;
+//        }
+        listFish.removeIf(GameObject::isDead);
+    }
 
+    private void checkLevel(){
+        // TODO: 11/13/2018 Hàm kiểm tra xem cá của chúng ta thuộc level bao nhiêu
         if (point == 15) { // Level Up
             hanldeLevelUp();
             point ++;
-        }
-
-        if (point >= 15) {
-            for (GameObject normal : listNormalFish) {
-                if (player.isColliding(player.getNode(), normal.getNode())) {
-                    normal.setAlive(false);
-                    point ++;
-                    root.getChildren().remove(normal.getNode());
-                }
-            }
-        } else {
-            for (GameObject normal : listNormalFish) {
-                if (player.isColliding(player.getNode(), normal.getNode())) { // fix this
-//                    player.setAlive(false);
-//                    point --;
-//                    heart --;
-//                    System.out.println("heart : " + heart);
-//                    System.out.println("point : " + point);
-                }
-            }
         }
 
         if (point == 30) {
@@ -237,33 +230,18 @@ public class Game extends Application {
             point ++;
         }
 
-        for (GameObject normal : listNormalFish) {
-            for (GameObject small : listSmallFish) {
-                if (normal.isColliding(normal.getNode(), small.getNode())) {
-                    small.setAlive(false);
-                    root.getChildren().remove(small.getNode());
-                }
-            }
-        }
-        if (point < 0) {
-            point = 0;
-        }
-        if (heart < 0) {
-            heart = 0;
-        }
-        if (player.isDead()) {
-            hanldeDied();
-        }
+    }
 
-        listSmallFish.removeIf(GameObject::isDead);
-        listNormalFish.removeIf(GameObject::isDead);
-        listBigFish.removeIf(GameObject::isDead);
-
+    private void handleCollisionSuccess(GameObject gameObject) {
+        // TODO: 11/13/2018 Hàm xử lí nếu va chạm với cá mà thỏa mãn yêu cầu cá lơn nuốt cá bé
+        gameObject.setAlive(false);
+        point++;
+        root.getChildren().remove(gameObject.getNode());
     }
 
     private void hanldeDied(){
         // TODO: 11/3/2018 Hàm xử lí khi gamePlay chết (va chạm với cá lớn hơn, hoặc va chạm với bom)
-
+        System.out.println("DIEEEEEEEEEEEEEEEEEEEEEEEE");
     }
 
     private void hanldeLevelUp(){
