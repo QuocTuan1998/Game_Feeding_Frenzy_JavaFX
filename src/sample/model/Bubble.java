@@ -1,4 +1,4 @@
-package sample;
+package sample.model;
 
 import javafx.animation.TranslateTransition;
 import javafx.scene.Node;
@@ -6,6 +6,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Sphere;
 import javafx.util.Duration;
+import sample.Game;
 
 public class Bubble extends Sphere {
     private PhongMaterial phongMaterial;
