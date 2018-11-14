@@ -20,21 +20,29 @@ public class AnimationObject {
         obj.play();
     }
 
-    public void moveLeft(Node node, int duration) {
-        TranslateTransition translateTransition = new TranslateTransition(Duration.seconds(duration), node);
-        translateTransition.setByX(2200);
+    public void moveRight(GameObject node, int secound) {
+
+        node.setRotate(false);
+
+        TranslateTransition translateTransition = new TranslateTransition(Duration.seconds(secound), node.getNode());
+        translateTransition.setByX(2300);
         translateTransition.setAutoReverse(true);
         translateTransition.play();
     }
 
-    public void moveRight(Node node, int duration) {
-        TranslateTransition translateTransition = new TranslateTransition(Duration.seconds(duration), node);
-        translateTransition.setToX(-100);
+    public void moveLeft(GameObject node, int secound) {
+        node.setRotate(true);
+
+        TranslateTransition translateTransition = new TranslateTransition(Duration.seconds(secound), node.getNode());
+        translateTransition.setByX(-1900);
         translateTransition.setAutoReverse(true);
         translateTransition.play();
     }
 
-    public void moveDown(Node node, int sec) {
+
+    public void moveDown(Node node, int sec) {}
+
+    public void moveUp(Node node, int sec) {
         TranslateTransition translateTransition = new TranslateTransition(Duration.seconds(sec), node);
         translateTransition.setByY(2000);
         translateTransition.setAutoReverse(true);

@@ -2,6 +2,8 @@ package sample.model;
 
 import javafx.animation.TranslateTransition;
 import javafx.scene.Node;
+import javafx.scene.image.Image;
+import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.PhongMaterial;
 import javafx.scene.shape.Sphere;
@@ -11,28 +13,41 @@ import sample.Game;
 public class Bubble extends Sphere {
     private PhongMaterial phongMaterial;
     private TranslateTransition translateTransition;
+    private boolean alive = false;
 
     public Bubble(){
         super();
     }
 
-    public Bubble(double radius, double x, double y, double z){
+    public Bubble(double radius, double x, double y, double z, String type){
         this.setTranslateX(x);
         this.setTranslateY(y);
         this.setTranslateZ(z);
         this.setRadius(radius);
         phongMaterial = new PhongMaterial();
-//        phongMaterial.setDiffuseMap(new Image("sample/src/bb2.png"));
-        phongMaterial.setDiffuseColor(Color.web("#b5bfcc6e"));
+        if (type.equals("coin")) {
+            phongMaterial.setDiffuseMap(new Image("sample/src/gold.jpg"));
+            phongMaterial.setSelfIlluminationMap(new Image("sample/src/gold.jpg"));
+        } else if (type.equals("buble")) {
+            phongMaterial.setDiffuseColor(Color.web("#b5bfcc6e"));
+        }
+
         this.setMaterial(phongMaterial);
 
     }
 
-    public void move(Node node, double x){
+    public void moveUp(Node node, double x){
         translateTransition = new TranslateTransition(Duration.seconds(x), node);
-        translateTransition.setByY(-Game.HEIGHT);
+        translateTransition.setByY(-1200);
         translateTransition.setCycleCount(10);
         translateTransition.play();
     }
 
+    public void setAlive(boolean alive) {
+        this.alive = alive;
+    }
+
+    public boolean isDead() {
+        return !alive;
+    }
 }
