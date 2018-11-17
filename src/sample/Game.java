@@ -280,13 +280,10 @@ public class Game extends Application {
         } else {
             for (GameObject normal : listNormalFish) {
                 if (isColliding(player.getNode(), normal.getNode())) { // normal fish -- player lv1
-                    timer.stop();
-                    point = 0;
-                    heart -= 1;
-                    hanldeDied(player);
+
+                    handlePlayerDied();
                     System.out.println("heart : " + heart);
                     System.out.println("point : " + point);
-
                     if (heart != 0) {
                         handleRespawn();
                     }
@@ -295,17 +292,17 @@ public class Game extends Application {
             }
         }
 
-        if (point == max) { // Win
-            timer.stop();
-            System.out.println("win rỒi");
-        }
+//        for (GameObject co : listCoin) {
+//            if (isColliding(player.getNode(), co.getNode())) {
+//                System.out.println("---");
+//                point ++;
+//                co.setAlive(false);
+//                root.getChildren().remove(co.getNode());
+//            }
+//        }
 
-        if (heart <= 0) { // lose
-            timer.stop();
-            System.out.println("thua rồi");
-        }
         if (player.isDead()) { // lose || respawn
-            hanldeDied(player);
+            handlePlayerDied();
         }
 //
         if (point <= 0) {
@@ -313,6 +310,7 @@ public class Game extends Application {
         }
         if (heart <= 0) {
             heart = 0;
+            textHeart.setText("X0");
         }
         //remove element if element is dead
         listSmallFish.removeIf(GameObject::isDead);
@@ -353,14 +351,22 @@ public class Game extends Application {
         root.getChildren().remove(who.getNode());
     }
 
+    private void handlePlayerDied() {
+        timer.stop();
+        point = 0;
+        heart --;
+        player.setAlive(false);
+        root.getChildren().remove(player.getNode());
+    }
+
     private void hanldeLevelUp(){
         // TODO: 11/3/2018 hàm xử lí khi gamePlay được thăng cấp Level
 
+        point ++;
+        heart ++;
         player.getNode().setScaleX(player.getNode().getScaleX() + 50);
         player.getNode().setScaleY(player.getNode().getScaleY() + 50);
         player.getNode().setScaleZ(player.getNode().getScaleZ() + 50);
-        point ++;
-        heart ++;
 
     }
 
