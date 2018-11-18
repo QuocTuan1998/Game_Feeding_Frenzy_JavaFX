@@ -5,6 +5,7 @@ import javafx.application.Application;
 
 import javafx.application.Platform;
 import javafx.geometry.Pos;
+import javafx.scene.Cursor;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -20,6 +21,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import sample.model.AnimationObject;
 import sample.model.Bubble;
 import sample.model.GameObject;
 
@@ -31,8 +33,9 @@ import java.util.Random;
 
 public class Game extends Application {
 
-    public static final int WIDTH = 1900;
-    public static final int HEIGHT = 770;
+    private static final int WIDTH = 1900;
+    private static final int HEIGHT = 770;
+    private Scene scene;
 
     private double mousePosition = 0;
     private GameObject player;
@@ -46,13 +49,10 @@ public class Game extends Application {
     private double max = 20;
     private int heart = 3;
 
-    private List<GameObject> listSmallFish= new ArrayList<>();
-    private List<GameObject> listNormalFish= new ArrayList<>();
-    private List<GameObject> listBigFish= new ArrayList<>();
-    private List<GameObject> listCoin = new ArrayList<>();
-
+    private List<GameObject> listObject = new ArrayList<>();
 
     private AnimationTimer timer;
+    private AnimationObject animationObject;
 
     private Random random = new Random();
 
@@ -100,17 +100,9 @@ public class Game extends Application {
         root.getChildren().add(hBox);
 
 
-//        coin = new Bubble(55,
-//                500,
-//                500,
-//                100,
-//                "coin"); ../object/
-
-
         player = new GameObject();
 
-        player.drawFish(root, "Angel0.3ds", "sample/src/AngelT.bmp",600, 600, 100, 100, Color.AQUA);
-//        root.getChildren().add(coin);
+        player.drawFish(root, "Angel0.3ds", "sample/src/AngelT.bmp",600, 600, 100, 100, Color.AQUA, "player");
 
         timer = new AnimationTimer() {
             @Override
@@ -126,12 +118,13 @@ public class Game extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception{
 
-        Scene scene = new Scene(initGamePlay());
+        scene = new Scene(initGamePlay());
 
         scene.getStylesheets().add("sample/style.css");
 
         if (player.isAlive()) {
             scene.setOnMouseMoved(event -> {
+                scene.setCursor(Cursor.NONE);
                 if (event.getX() < mousePosition){
                     player.setRotate(true);
                 }else{
@@ -147,10 +140,19 @@ public class Game extends Application {
     }
 
     private void onUpdate() {
-        bar.setProgress(point / max);
-        textHeart.setText("X" + heart);
         initSprite();
+        checkPoint();
         handleCollision();
+
+        if (player.isDead()) { // lose || respawn
+            handlePlayerDied();
+        }
+
+        textHeart.setText("X" + heart);
+        if (heart <= 0) {
+            heart = 0;
+            textHeart.setText("X0");
+        }
     }
 
     private void initSprite() {
@@ -159,7 +161,7 @@ public class Game extends Application {
             addSmallFish();
         }
         // CREATE NORMAL FISH
-        if (Math.random() < 0.005) {
+        if (Math.random() < 0.006) {
             addNormalFish();
         }
         // CREATE BIG FISH
@@ -171,10 +173,9 @@ public class Game extends Application {
             addBuble();
         }
         // CREATE COIN
-//        if (Math.random() < 0.01) {
-//            addCoin();
-//        }
-
+        if (Math.random() < 0.0005) {
+            addCoin();
+        }
 
     }
 
@@ -191,17 +192,16 @@ public class Game extends Application {
     }
 
     private void addCoin() {
-
-//        coin = new Bubble(10,
-//                random.nextInt(WIDTH - 30) + 30,
-//                500,
-//                100,
-//                "coin");
         coin = new GameObject();
-        coin.drawCoin(root, random.nextInt(WIDTH - 30) + 30);
-        listCoin.add(coin);
-        System.out.println(listCoin.size() + "---");
-//        coin.moveUp(coin, random.nextInt(5 - 3) + 3);
+        coin.drawCoin(root,
+                random.nextInt(15 - 10) + 10,
+                random.nextInt(WIDTH - 30) + 30,
+                1000,
+                100,
+                "coin");
+        coin.moveUp(coin, random.nextInt(10 - 5) + 5);
+        System.out.println(listObject.size());
+        listObject.add(coin);
     }
 
     private void addBigFish() {
@@ -225,18 +225,19 @@ public class Game extends Application {
                 "Blackbass0.3ds", "sample/src/BlackbT.bmp",
                 random.nextBoolean() ? 2000 : -200,
 //                500,
-                random.nextInt(HEIGHT - 300),
+                random.nextInt(HEIGHT),
                 150,
                 300,
-                null);
+                null,
+                "normal");
 
         if (normalFish.getNode().getTranslateX() == -200) {
             normalFish.moveRight(normalFish, random.nextInt(20 - 15) + 15);
         } else if (normalFish.getNode().getTranslateX() == 2000){
             normalFish.moveLeft(normalFish, random.nextInt(20 - 15) + 15);
         }
-
-        listNormalFish.add(normalFish);
+        System.out.println(listObject.size());
+        listObject.add(normalFish);
     }
 
     private void addSmallFish() {
@@ -244,46 +245,56 @@ public class Game extends Application {
         smallFish.drawFish(root,
                 "BrownTrout0.3ds", "sample/src/BrownTT.bmp",
                 random.nextBoolean() ? 2000 : -200,
-                random.nextInt(HEIGHT - 300),
+                random.nextInt(HEIGHT),
                 100,
                 150,
-                null);
+                null,
+                "small");
 
         if (smallFish.getNode().getTranslateX() == -200) {
             smallFish.moveRight(smallFish, random.nextInt(20 - 15) + 15);
         } else if (smallFish.getNode().getTranslateX() == 2000){
             smallFish.moveLeft(smallFish, random.nextInt(20 - 15) + 15);
         }
-
-        listSmallFish.add(smallFish);
+        listObject.add(smallFish);
     }
 
     private void handleCollision() {
         // TODO: 11/3/2018 Xử lí va chạm khi gamePlay va chạm với các đối tượng khác
-        checkLevel();
-
-        for (GameObject small : listSmallFish) { // small fish -- player
-            if (isColliding(player.getNode(), small.getNode())) {
-                point++;
-                System.out.println(point);
-                hanldeDied(small);
+        for (GameObject normal : listObject) { //normal -- small
+            for (GameObject small : listObject) {
+                if (isColliding(normal.getNode(), small.getNode()) &&
+                        isNormal(normal) &&
+                        isSmall(small)) {
+                    hanldeDied(small);
+                }
             }
         }
 
+        for (GameObject object : listObject) { // player -- coin
+            if (isColliding(player.getNode(), object.getNode()) && isCoin(object)) {
+                point += 2;
+                hanldeDied(object);
+            }
+
+            if (isColliding(player.getNode(), object.getNode()) && isSmall(object)) { // player -- small
+                point++;
+                hanldeDied(object);
+            }
+        }
+
+
         if (point > pointLv1) {
-            for (GameObject normal : listNormalFish) { // normal fish -- player lv2
-                if (isColliding(player.getNode(), normal.getNode())) {
+            for (GameObject normal : listObject) { // normal fish -- player lv2
+                if (isColliding(player.getNode(), normal.getNode()) && isNormal(normal)) {
                     point++;
                     hanldeDied(normal);
                 }
             }
         } else {
-            for (GameObject normal : listNormalFish) {
-                if (isColliding(player.getNode(), normal.getNode())) { // normal fish -- player lv1
-
+            for (GameObject normal : listObject) {
+                if (isColliding(player.getNode(), normal.getNode()) && isNormal(normal)) { // normal fish -- player lv1
                     handlePlayerDied();
-                    System.out.println("heart : " + heart);
-                    System.out.println("point : " + point);
                     if (heart != 0) {
                         handleRespawn();
                     }
@@ -292,41 +303,32 @@ public class Game extends Application {
             }
         }
 
-//        for (GameObject co : listCoin) {
-//            if (isColliding(player.getNode(), co.getNode())) {
-//                System.out.println("---");
-//                point ++;
-//                co.setAlive(false);
-//                root.getChildren().remove(co.getNode());
-//            }
-//        }
-
-        if (player.isDead()) { // lose || respawn
-            handlePlayerDied();
-        }
-//
-        if (point <= 0) {
-            point = 0;
-        }
-        if (heart <= 0) {
-            heart = 0;
-            textHeart.setText("X0");
-        }
         //remove element if element is dead
-        listSmallFish.removeIf(GameObject::isDead);
-        listNormalFish.removeIf(GameObject::isDead);
-        listBigFish.removeIf(GameObject::isDead);
-        listCoin.removeIf(GameObject::isDead);
+        listObject.removeIf(GameObject::isDead);
+    }
+
+    private boolean isNormal(GameObject object) {
+        return object.getType().equals("normal");
+    }
+
+    private boolean isSmall(GameObject object) {
+        return object.getType().equals("small");
+    }
+
+    private boolean isCoin(GameObject object) {
+        return object.getType().equals("coin");
     }
 
     private void handleRespawn() {
         timer.start();
-        player.drawFish(root, "Angel0.3ds", "sample/src/AngelT.bmp", 600, 600, 100, 100, Color.AQUA);
+        scene.setCursor(Cursor.NONE);
+        player.drawFish(root, "Angel0.3ds", "sample/src/AngelT.bmp", 600, 600, 100, 100, Color.AQUA, "player");
         moveCursor((int) player.getNode().getTranslateX(), (int) player.getNode().getTranslateY());
     }
 
-    private void checkLevel() {
+    private void checkPoint() {
         // TODO: 11/13/2018 Hàm kiểm tra xem cá của chúng ta thuộc level bao nhiêu
+        bar.setProgress(point / max);
         if (point == pointLv1) { // Level Up
             hanldeLevelUp();
         }
@@ -335,7 +337,14 @@ public class Game extends Application {
             hanldeLevelUp();
         }
 
+        if (point == max) {
+            timer.stop();
+            System.out.println("winnn");
+        }
 
+        if (point <= 0) {
+            point = 0;
+        }
     }
 
     private boolean isColliding(Node who, Node orther) { // return true if colliding
@@ -361,13 +370,11 @@ public class Game extends Application {
 
     private void hanldeLevelUp(){
         // TODO: 11/3/2018 hàm xử lí khi gamePlay được thăng cấp Level
-
         point ++;
         heart ++;
         player.getNode().setScaleX(player.getNode().getScaleX() + 50);
         player.getNode().setScaleY(player.getNode().getScaleY() + 50);
         player.getNode().setScaleZ(player.getNode().getScaleZ() + 50);
-
     }
 
     private void moveCursor(int screenX, int screenY) { // set mouse position for respawn

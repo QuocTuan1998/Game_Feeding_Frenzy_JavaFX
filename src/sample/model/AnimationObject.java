@@ -44,7 +44,7 @@ public class AnimationObject {
 
     public void moveUp(Node node, int sec) {
         TranslateTransition translateTransition = new TranslateTransition(Duration.seconds(sec), node);
-        translateTransition.setByY(2000);
+        translateTransition.setByY(-1200);
         translateTransition.setAutoReverse(true);
         translateTransition.play();
     }

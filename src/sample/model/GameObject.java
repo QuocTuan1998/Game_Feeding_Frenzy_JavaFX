@@ -17,9 +17,11 @@ public class GameObject {
     private AnimationObject animation = new AnimationObject();
     private Rotate rot2;
     private boolean alive = false;
-    private Random random;
-    public void drawFish(Pane root,  String name, String url, double x, double y, double z, int scale, Color color){
-        alive = true;
+    private String type;
+
+    public void drawFish(Pane root,  String name, String url, double x, double y, double z, int scale, Color color, String type){
+        this.alive = true;
+        this.type = type;
         TdsModelImporter model = new TdsModelImporter();
         model.read(this.getClass().getResource("../object/" + name));
         Node[] arr = model.getImport();
@@ -54,13 +56,16 @@ public class GameObject {
         root.getChildren().add(node);
     }
 
-    public void drawCoin(Pane root, double x) {
-        Bubble coin = new Bubble(50,
+    public void drawCoin(Pane root, double radius, double x, double y, double z, String type) {
+        this.alive = true;
+        this.type = type;
+        Bubble coin = new Bubble(radius,
                 x,
-                500,
-                100,
-                "coin");
-        root.getChildren().add(coin);
+                y,
+                z,
+                type);
+        node = coin;
+        root.getChildren().add(node);
     }
 
     public Node getNode() {
@@ -79,12 +84,20 @@ public class GameObject {
         this.alive = alive;
     }
 
+    public String getType() {
+        return type;
+    }
+
     public void moveRight(GameObject node, int sec) {
         animation.moveRight(node, sec);
     }
 
     public void moveLeft(GameObject node, int sec) {
         animation.moveLeft(node, sec);
+    }
+
+    public void moveUp(GameObject node, int sec) {
+        animation.moveUp(node.getNode(), sec);
     }
 
     public void setPosition(double x, double y){
